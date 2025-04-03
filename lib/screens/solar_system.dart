@@ -97,10 +97,6 @@ class _SolarSystemsScreenState extends State<SolarSystemsScreen> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
-
   Future<void> _showAddSolarSystemDialog() async {
     await showDialog(
       context: context,

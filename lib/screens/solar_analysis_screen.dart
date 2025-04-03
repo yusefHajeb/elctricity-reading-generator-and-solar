@@ -1,10 +1,12 @@
 import 'package:elctricity_info/models/solar_system.dart';
+import 'package:elctricity_info/widget/summary_row.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/reading.dart';
 import '../providers/reports_provider.dart';
 import '../service/database_service.dart';
+import '../service/pdf_service.dart';
 
 class SolarAnalysisScreen extends StatefulWidget {
   final SolarSystem solar;
@@ -31,7 +33,15 @@ class _SolarAnalysisScreenState extends State<SolarAnalysisScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.solar.name} تحليل'),
+        title: Text('${widget.solar.name} تقرير'),
+        actions: [
+          if (_readings != null && _readings!.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf),
+              tooltip: 'تصدير PDF',
+              onPressed: _exportToPdf,
+            ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -225,6 +235,57 @@ class _SolarAnalysisScreenState extends State<SolarAnalysisScreen> {
     }
   }
 
+  Future<void> _exportToPdf() async {
+    if (_startDate == null ||
+        _endDate == null ||
+        _readings == null ||
+        _readings!.isEmpty) return;
+
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Generate PDF
+      final pdfService = PdfService();
+      final pdfFile = await pdfService.generateSolarAnalysisReport(
+        solarSystem: widget.solar,
+        startDate: _startDate!,
+        endDate: _endDate!,
+        summary: _summary,
+        detailedReadings: _detailedReadings!,
+      );
+
+      // Share PDF
+      await pdfService.sharePdf(pdfFile);
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('تم تصدير التقرير بنجاح'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('خطأ في تصدير التقرير: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildSummaryCard() {
     return Card(
       child: Padding(
@@ -237,7 +298,7 @@ class _SolarAnalysisScreenState extends State<SolarAnalysisScreen> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
-            // _SummaryRow(
+            // SummaryRow(
             //   icon: Icons.local_gas_station,
             //   label: 'إجمالي استهلاك الديزل',
             //   value:
@@ -245,30 +306,24 @@ class _SolarAnalysisScreenState extends State<SolarAnalysisScreen> {
             //   color: Colors.red,
             // ),
             const SizedBox(height: 8),
-            _SummaryRow(
-              icon: Icons.power,
-              label: 'اجمالي استهلاك الكيلوهات',
+            SummaryRow(
+              icon: Icons.solar_power,
+              label: 'اجمالي الانتاج ',
               value:
                   '${_summary['totalMeterReading']?.toStringAsFixed(2) ?? '0.00'} kWh',
               color: Colors.orange,
             ),
             const SizedBox(height: 8),
-            // _SummaryRow(
-            //   icon: Icons.speed,
-            //   label: 'متوسط معدل الديزل',
-            //   value:
-            //       '${_summary['avgRate']?.toStringAsFixed(2) ?? '0.00'} kWh/L',
-            //   color: Colors.blue,
-            // ),
+
             const SizedBox(height: 8),
-            _SummaryRow(
+            SummaryRow(
               icon: Icons.calendar_today,
               label: 'عدد الأيام',
               value: '${_summary['days'] ?? '0'} يوم',
               color: Colors.green,
             ),
             const SizedBox(height: 8),
-            // _SummaryRow(
+            // SummaryRow(
             //   icon: Icons.trending_down,
             //   label: ' متوسط الاستهلاك اليومي',
             //   value:
@@ -329,7 +384,7 @@ class _SolarAnalysisScreenState extends State<SolarAnalysisScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'القراءة : الاستهلاك ',
+                      'القراءة : الإنتاج ',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     Text(
@@ -343,38 +398,6 @@ class _SolarAnalysisScreenState extends State<SolarAnalysisScreen> {
           ),
         );
       },
-    );
-  }
-}
-
-class _SummaryRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
-
-  const _SummaryRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, color: color),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(label),
-        ),
-        Text(
-          value,
-          style:
-              Theme.of(context).textTheme.titleMedium?.copyWith(color: color),
-        ),
-      ],
     );
   }
 }

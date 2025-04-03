@@ -2,7 +2,6 @@ import 'package:elctricity_info/providers/reports_provider.dart';
 import 'package:elctricity_info/screens/date_range_report.dart';
 import 'package:elctricity_info/widget/about_developer.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'export_data_screen.dart';
 
@@ -278,61 +277,6 @@ class _ReadingDetailCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _ConsumptionTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final double value;
-  final Color color;
-  final bool large;
-
-  const _ConsumptionTile({
-    required this.icon,
-    required this.title,
-    required this.value,
-    required this.color,
-    this.large = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          color: color,
-          size: large ? 32 : 24,
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: large
-                    ? Theme.of(context).textTheme.titleLarge
-                    : Theme.of(context).textTheme.titleMedium,
-              ),
-              Text(
-                '${value.toStringAsFixed(2)} kWh',
-                style: large
-                    ? Theme.of(context)
-                        .textTheme
-                        .headlineSmall
-                        ?.copyWith(color: color)
-                    : Theme.of(context)
-                        .textTheme
-                        .titleSmall
-                        ?.copyWith(color: color),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

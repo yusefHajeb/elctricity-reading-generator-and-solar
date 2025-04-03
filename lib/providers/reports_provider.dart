@@ -6,7 +6,7 @@ import '../service/database_service.dart';
 
 class ReportsProvider with ChangeNotifier {
   final DatabaseService _databaseService = DatabaseService();
-  DateTime _selectedDate = DateTime.now();
+  DateTime _selectedDate = DateTime.now().subtract(const Duration(days: 1));
   bool _isLoading = false;
   Map<String, dynamic> _dailyConsumptionData = {};
   List<Map<String, dynamic>> _detailedReadings = [];

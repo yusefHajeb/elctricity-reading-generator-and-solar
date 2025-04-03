@@ -172,7 +172,7 @@ class _GeneratorDetailsScreenState extends State<GeneratorDetailsScreen> {
                 child: ReadingListItem(
                   reading: reading,
                   previousReading: previousReading,
-                  // onEdit: () => _editReading(reading),
+                  onEdit: () => _editReading(reading),
                 ),
               );
             },

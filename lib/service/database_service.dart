@@ -1,6 +1,5 @@
 import 'package:elctricity_info/core/date_extensiton.dart';
 import 'package:elctricity_info/models/base_consumption.dart';
-import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/generator.dart';

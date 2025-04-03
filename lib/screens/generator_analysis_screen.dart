@@ -1,3 +1,5 @@
+import 'package:elctricity_info/core/app_colors.dart';
+import 'package:elctricity_info/widget/summary_row.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -5,6 +7,7 @@ import '../models/generator.dart';
 import '../models/reading.dart';
 import '../providers/reports_provider.dart';
 import '../service/database_service.dart';
+import '../service/pdf_service.dart';
 
 class GeneratorAnalysisScreen extends StatefulWidget {
   final Generator generator;
@@ -33,6 +36,14 @@ class _GeneratorAnalysisScreenState extends State<GeneratorAnalysisScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.generator.name} تحليل'),
+        actions: [
+          if (_readings != null && _readings!.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf),
+              tooltip: 'تصدير PDF',
+              onPressed: _exportToPdf,
+            ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -232,6 +243,57 @@ class _GeneratorAnalysisScreenState extends State<GeneratorAnalysisScreen> {
     }
   }
 
+  Future<void> _exportToPdf() async {
+    if (_startDate == null ||
+        _endDate == null ||
+        _readings == null ||
+        _readings!.isEmpty) return;
+
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Generate PDF
+      final pdfService = PdfService();
+      final pdfFile = await pdfService.generateGeneratorAnalysisReport(
+        generator: widget.generator,
+        startDate: _startDate!,
+        endDate: _endDate!,
+        summary: _summary,
+        detailedReadings: _detailedReadings!,
+      );
+
+      // Share PDF
+      await pdfService.sharePdf(pdfFile);
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('تم تصدير التقرير بنجاح'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('خطأ في تصدير التقرير: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildSummaryCard() {
     return Card(
       child: Padding(
@@ -244,15 +306,15 @@ class _GeneratorAnalysisScreenState extends State<GeneratorAnalysisScreen> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
-            _SummaryRow(
+            SummaryRow(
               icon: Icons.local_gas_station,
-              label: 'الاستهلاك الكلي',
+              label: 'الإنتاج الكلي',
               value:
                   '${_summary['totalConsumption']?.toStringAsFixed(2) ?? '0.00'} kWh',
               color: Colors.red,
             ),
             const SizedBox(height: 8),
-            _SummaryRow(
+            SummaryRow(
               icon: Icons.power,
               label: 'استهلاك الديزل',
               value:
@@ -260,28 +322,21 @@ class _GeneratorAnalysisScreenState extends State<GeneratorAnalysisScreen> {
               color: Colors.orange,
             ),
             const SizedBox(height: 8),
-            _SummaryRow(
-              icon: Icons.speed,
-              label: 'متوسط معدل الديزل',
-              value:
-                  '${_summary['avgRate']?.toStringAsFixed(2) ?? '0.00'} kWh/L',
-              color: Colors.blue,
-            ),
+            // SummaryRow(
+            //   icon: Icons.speed,
+            //   label: 'متوسط معدل الديزل',
+            //   value:
+            //       '${_summary['avgRate']?.toStringAsFixed(2) ?? '0.00'} kWh/L',
+            //   color: Colors.blue,
+            // ),
             const SizedBox(height: 8),
-            _SummaryRow(
+            SummaryRow(
               icon: Icons.calendar_today,
               label: 'عدد الأيام',
               value: '${_summary['days'] ?? '0'} يوم',
               color: Colors.green,
             ),
             const SizedBox(height: 8),
-            // _SummaryRow(
-            //   icon: Icons.trending_down,
-            //   label: ' متوسط الاستهلاك اليومي',
-            //   value:
-            //       '${_summary['avgDailyConsumption']?.toStringAsFixed(2) ?? '0.00'} L/day',
-            //   color: Colors.purple,
-            // ),
           ],
         ),
       ),
@@ -303,7 +358,7 @@ class _GeneratorAnalysisScreenState extends State<GeneratorAnalysisScreen> {
 
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 4),
-          color: Colors.orange.withOpacity(0.05),
+          color: AppColors.generator.withOpacity(0.05),
           child: Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
@@ -313,7 +368,7 @@ class _GeneratorAnalysisScreenState extends State<GeneratorAnalysisScreen> {
                   children: [
                     const Icon(
                       Icons.power,
-                      color: Colors.orange,
+                      color: AppColors.generator,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -380,38 +435,6 @@ class _GeneratorAnalysisScreenState extends State<GeneratorAnalysisScreen> {
           ),
         );
       },
-    );
-  }
-}
-
-class _SummaryRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
-
-  const _SummaryRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, color: color),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(label),
-        ),
-        Text(
-          value,
-          style:
-              Theme.of(context).textTheme.titleMedium?.copyWith(color: color),
-        ),
-      ],
     );
   }
 }

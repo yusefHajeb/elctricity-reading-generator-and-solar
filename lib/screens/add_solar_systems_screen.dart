@@ -85,28 +85,28 @@ class _AddSolarReadingScreenState extends State<AddSolarReadingScreen> {
     }
   }
 
-  Future<void> _confirmReplace() async {
-    return showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reading Already Exists'),
-        content: Text(
-          'توجد قراءة بالفعل لـ ${DateFormat('dd/MM/yyyy').format(_selectedDate)}. '
-          'هل تريد استبدالها؟',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('الغاء '),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('استبدال'),
-          ),
-        ],
-      ),
-    );
-  }
+  // Future<void> _confirmReplace() async {
+  //   return showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: const Text('Reading Already Exists'),
+  //       content: Text(
+  //         'توجد قراءة بالفعل لـ ${DateFormat('dd/MM/yyyy').format(_selectedDate)}. '
+  //         'هل تريد استبدالها؟',
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context, false),
+  //           child: const Text('الغاء '),
+  //         ),
+  //         FilledButton(
+  //           onPressed: () => Navigator.pop(context, true),
+  //           child: const Text('استبدال'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {

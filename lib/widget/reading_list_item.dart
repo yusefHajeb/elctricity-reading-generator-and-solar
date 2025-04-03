@@ -49,8 +49,7 @@ class ReadingListItem extends StatelessWidget {
                   'القراءة الحالية:', reading.meterReading.toString()),
               _buildInfoRow('القراءة السابقة :',
                   previousReading?.meterReading.toString() ?? 'N/A'),
-              _buildInfoRow(
-                  'استهلاك الكيلوهات:', difference.toStringAsFixed(2)),
+              _buildInfoRow('إنتاج الكيلوهات:', difference.toStringAsFixed(2)),
               if (reading.dieselConsumption != null) ...[
                 _buildInfoRow('استهلاك الديزل:',
                     '${reading.dieselConsumption.toString()} L'),
