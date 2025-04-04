@@ -110,6 +110,27 @@ class DatabaseService {
     return List.generate(maps.length, (i) => Generator.fromMap(maps[i]));
   }
 
+  Future<bool> deleteGenerator(int id) async {
+    final db = await database;
+    // Delete all readings for this generator first
+    await db.delete('readings', where: 'generator_id = ?', whereArgs: [id]);
+    // Then delete the generator
+    final count =
+        await db.delete('generators', where: 'id = ?', whereArgs: [id]);
+    return count > 0;
+  }
+
+  Future<bool> updateGenerator(Generator generator) async {
+    final db = await database;
+    final count = await db.update(
+      'generators',
+      generator.toMap(),
+      where: 'id = ?',
+      whereArgs: [generator.id],
+    );
+    return count > 0;
+  }
+
   // Solar System operations
   Future<int> insertSolarSystem(SolarSystem solarSystem) async {
     final db = await database;
@@ -120,6 +141,27 @@ class DatabaseService {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('solar_systems');
     return List.generate(maps.length, (i) => SolarSystem.fromMap(maps[i]));
+  }
+
+  Future<bool> deleteSolarSystem(int id) async {
+    final db = await database;
+    // Delete all readings for this solar system first
+    await db.delete('readings', where: 'solar_system_id = ?', whereArgs: [id]);
+    // Then delete the solar system
+    final count =
+        await db.delete('solar_systems', where: 'id = ?', whereArgs: [id]);
+    return count > 0;
+  }
+
+  Future<bool> updateSolarSystem(SolarSystem solarSystem) async {
+    final db = await database;
+    final count = await db.update(
+      'solar_systems',
+      solarSystem.toMap(),
+      where: 'id = ?',
+      whereArgs: [solarSystem.id],
+    );
+    return count > 0;
   }
 
   // Reading operations

@@ -72,10 +72,24 @@ class _GeneratorsScreenState extends State<GeneratorsScreen> {
                   ),
                   title: Text(generator.name),
                   subtitle: Text(
-                    'أنشئت في ${generator.createdAt.toIso8601String().split('T')[0]}',
+                    'تاريخ الانشاء  ${generator.createdAt.toIso8601String().split('T')[0]}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  trailing: const Icon(Icons.chevron_right),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () => _showEditGeneratorDialog(generator),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () =>
+                            _showDeleteConfirmationDialog(generator),
+                      ),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -100,10 +114,6 @@ class _GeneratorsScreenState extends State<GeneratorsScreen> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
-
   Future<void> _showAddGeneratorDialog() async {
     await showDialog(
       context: context,
@@ -118,10 +128,10 @@ class _GeneratorsScreenState extends State<GeneratorsScreen> {
               hint: 'ادخل اسم المولد',
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a name';
+                  return 'يرجى ادخال اسم المولد';
                 }
                 if (value.length < 3) {
-                  return 'Name must be at least 3 characters';
+                  return 'ينبغي ان يكون الاسم اكبر من ثلاثة حروف';
                 }
                 return null;
               },
@@ -133,7 +143,7 @@ class _GeneratorsScreenState extends State<GeneratorsScreen> {
                 _nameController.clear();
                 Navigator.pop(context);
               },
-              child: const Text('Cancel'),
+              child: const Text('إلغاء'),
             ),
             FilledButton(
               onPressed: () async {
@@ -150,7 +160,95 @@ class _GeneratorsScreenState extends State<GeneratorsScreen> {
                   }
                 }
               },
-              child: const Text('Add'),
+              child: const Text('إضافة'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showEditGeneratorDialog(Generator generator) async {
+    _nameController.text = generator.name;
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('تعديل المولد'),
+          content: Form(
+            key: _formKey,
+            child: CustomTextField(
+              controller: _nameController,
+              label: 'اسم المولد',
+              hint: 'ادخل اسم المولد',
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'يرجى ادخال الاسم';
+                }
+                if (value.length < 3) {
+                  return 'يجب ان يكون الاسم 3 احرف على الاقل';
+                }
+                return null;
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _nameController.clear();
+                Navigator.pop(context);
+              },
+              child: const Text('الغاء'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  final updatedGenerator = Generator(
+                    id: generator.id,
+                    name: _nameController.text.trim(),
+                    createdAt: generator.createdAt,
+                  );
+                  await _databaseService.updateGenerator(updatedGenerator);
+                  _nameController.clear();
+                  if (mounted) {
+                    Navigator.pop(context);
+                    setState(() {});
+                  }
+                }
+              },
+              child: const Text('حفظ'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showDeleteConfirmationDialog(Generator generator) async {
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('حذف المولد'),
+          content: Text(
+              'هل انت متأكد من حذف المولد "${generator.name}"؟ سيتم حذف جميع القراءات المرتبطة به.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('الغاء'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                await _databaseService.deleteGenerator(generator.id!);
+                if (mounted) {
+                  Navigator.pop(context);
+                  setState(() {});
+                }
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: const Text('حذف'),
             ),
           ],
         );

@@ -39,12 +39,12 @@ class _SolarSystemsScreenState extends State<SolarSystemsScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No solar systems found',
+                    'لا يوجد بيانات',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Add one to get started!',
+                    'فم ب اضافة بيانات',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context)
                               .colorScheme
@@ -69,10 +69,25 @@ class _SolarSystemsScreenState extends State<SolarSystemsScreen> {
                   ),
                   title: Text(solarSystem.name),
                   subtitle: Text(
-                    'الانشاء في ${solarSystem.createdAt.toIso8601String().split('T')[0]}',
+                    'تأريخ الانشاء  ${solarSystem.createdAt.toIso8601String().split('T')[0]}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  trailing: const Icon(Icons.chevron_right),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () =>
+                            _showEditSolarSystemDialog(solarSystem),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () =>
+                            _showDeleteConfirmationDialog(solarSystem),
+                      ),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -102,19 +117,19 @@ class _SolarSystemsScreenState extends State<SolarSystemsScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('اضافة مولد طاقة شمسية'),
+          title: const Text('اضافة منظومة شمسية'),
           content: Form(
             key: _formKey,
             child: CustomTextField(
               controller: _nameController,
               label: 'اسم المولد ',
-              hint: 'اسم المولد الطاقة الشمسية',
+              hint: 'اسم المنظومة الشمسية',
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'يرجى ادخال الاسم ';
                 }
                 if (value.length < 3) {
-                  return 'Name must be at least 3 characters';
+                  return 'ينبغي ان يكون الاسم اكبر من ثلاث حروف';
                 }
                 return null;
               },
@@ -144,6 +159,94 @@ class _SolarSystemsScreenState extends State<SolarSystemsScreen> {
                 }
               },
               child: const Text('اضافة'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showEditSolarSystemDialog(SolarSystem solarSystem) async {
+    _nameController.text = solarSystem.name;
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('تعديل المنظومة الشمسية'),
+          content: Form(
+            key: _formKey,
+            child: CustomTextField(
+              controller: _nameController,
+              label: 'اسم المنظومة',
+              hint: 'ادخل اسم المنظومة الشمسية',
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'يرجى ادخال الاسم';
+                }
+                if (value.length < 3) {
+                  return 'يجب ان يكون الاسم 3 احرف على الاقل';
+                }
+                return null;
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _nameController.clear();
+                Navigator.pop(context);
+              },
+              child: const Text('الغاء'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  final updatedSolarSystem = SolarSystem(
+                    id: solarSystem.id,
+                    name: _nameController.text.trim(),
+                    createdAt: solarSystem.createdAt,
+                  );
+                  await _databaseService.updateSolarSystem(updatedSolarSystem);
+                  _nameController.clear();
+                  if (mounted) {
+                    Navigator.pop(context);
+                    setState(() {});
+                  }
+                }
+              },
+              child: const Text('حفظ'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showDeleteConfirmationDialog(SolarSystem solarSystem) async {
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('حذف المنظومة الشمسية'),
+          content: Text(
+              'هل انت متأكد من حذف المنظومة "${solarSystem.name}"؟ سيتم حذف جميع القراءات المرتبطة بها.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('الغاء'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                await _databaseService.deleteSolarSystem(solarSystem.id!);
+                if (mounted) {
+                  Navigator.pop(context);
+                  setState(() {});
+                }
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: const Text('حذف'),
             ),
           ],
         );

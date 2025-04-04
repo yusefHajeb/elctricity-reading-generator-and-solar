@@ -12,11 +12,11 @@ import '../models/generator.dart';
 import '../models/reading.dart';
 import '../models/solar_system.dart';
 
-class PdfService {
+class PdfServiceO {
   // Singleton pattern
-  static final PdfService _instance = PdfService._internal();
-  factory PdfService() => _instance;
-  PdfService._internal();
+  static final PdfServiceO _instance = PdfServiceO._internal();
+  factory PdfServiceO() => _instance;
+  PdfServiceO._internal();
 
   // Font cache
   pw.Font? _arabicFont;
@@ -60,44 +60,6 @@ class PdfService {
         theme: pw.ThemeData.withFont(
           base: _arabicFont!,
         ),
-        header: (pw.Context context) {
-          if (context.pageNumber == 1) return pw.SizedBox();
-          return pw.Container(
-            decoration: pw.BoxDecoration(
-              border:
-                  pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300)),
-            ),
-            margin: const pw.EdgeInsets.only(bottom: 10),
-            padding: const pw.EdgeInsets.only(bottom: 10),
-            child: pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                pw.Text('نظام متابعة استهلاك الكهرباء',
-                    style: pw.TextStyle(color: PdfColors.grey700)),
-                pw.Text(DateFormat('yyyy-MM-dd').format(DateTime.now()),
-                    style: pw.TextStyle(color: PdfColors.grey700)),
-              ],
-            ),
-          );
-        },
-        footer: (pw.Context context) {
-          return pw.Container(
-            margin: const pw.EdgeInsets.only(top: 10),
-            padding: const pw.EdgeInsets.only(top: 10),
-            decoration: pw.BoxDecoration(
-              border: pw.Border(top: pw.BorderSide(color: PdfColors.grey300)),
-            ),
-            child: pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                pw.Text('جميع الحقوق محفوظة © ${DateTime.now().year}',
-                    style: pw.TextStyle(color: PdfColors.grey700)),
-                pw.Text('صفحة ${context.pageNumber} من ${context.pagesCount}',
-                    style: pw.TextStyle(color: PdfColors.grey700)),
-              ],
-            ),
-          );
-        },
         build: (pw.Context context) => [
           _buildHeader(
             title: 'تقرير بين التواريخ',
@@ -143,9 +105,6 @@ class PdfService {
         theme: pw.ThemeData.withFont(
           base: _arabicFont!,
         ),
-        pageTheme: _buildPageTheme(),
-        header: _buildPageHeader,
-        footer: _buildPageFooter,
         build: (pw.Context context) => [
           _buildHeader(
             title: 'تحليل المنظومة الشمسية: ${solarSystem.name}',
@@ -212,73 +171,40 @@ class PdfService {
     required DateTime startDate,
     required DateTime endDate,
   }) {
-    return pw.Container(
-      decoration: pw.BoxDecoration(
-        color: PdfColors.blue50,
-        border: pw.Border(
-            bottom: pw.BorderSide(color: PdfColors.blue200, width: 2)),
-      ),
-      padding: const pw.EdgeInsets.all(20),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.center,
-        children: [
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'تقرير رسمي',
-                    style: pw.TextStyle(
-                      fontSize: 24,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.blue900,
-                    ),
-                  ),
-                  pw.SizedBox(height: 5),
-                  pw.Text(
-                    'تاريخ التقرير: ${DateFormat('yyyy-MM-dd').format(DateTime.now())}',
-                    style: pw.TextStyle(
-                      fontSize: 12,
-                      color: PdfColors.grey700,
-                    ),
-                  ),
-                ],
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.center,
+      children: [
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.center,
+          children: [
+            pw.Image(_logoImage!, width: 60, height: 60),
+            pw.SizedBox(width: 10),
+            pw.Text(
+              'نظام متابعة استهلاك الكهرباء',
+              style: pw.TextStyle(
+                fontSize: 20,
+                fontWeight: pw.FontWeight.bold,
               ),
-              pw.Image(_logoImage!, width: 80, height: 80),
-            ],
-          ),
-          pw.SizedBox(height: 20),
-          pw.Container(
-            padding: const pw.EdgeInsets.symmetric(vertical: 10),
-            decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: PdfColors.blue200),
-              borderRadius: pw.BorderRadius.circular(8),
             ),
-            child: pw.Column(
-              children: [
-                pw.Text(
-                  title,
-                  style: pw.TextStyle(
-                    fontSize: 20,
-                    fontWeight: pw.FontWeight.bold,
-                    color: PdfColors.blue900,
-                  ),
-                ),
-                pw.SizedBox(height: 5),
-                pw.Text(
-                  'الفترة من ${DateFormat('yyyy-MM-dd').format(startDate)} إلى ${DateFormat('yyyy-MM-dd').format(endDate)}',
-                  style: pw.TextStyle(
-                    fontSize: 16,
-                    color: PdfColors.grey700,
-                  ),
-                ),
-              ],
-            ),
+          ],
+        ),
+        pw.SizedBox(height: 10),
+        pw.Text(
+          title,
+          style: pw.TextStyle(
+            fontSize: 18,
+            fontWeight: pw.FontWeight.bold,
           ),
-        ],
-      ),
+        ),
+        pw.SizedBox(height: 5),
+        pw.Text(
+          'الفترة من ${DateFormat('yyyy-MM-dd').format(startDate)} إلى ${DateFormat('yyyy-MM-dd').format(endDate)}',
+          style: pw.TextStyle(
+            fontSize: 14,
+          ),
+        ),
+        pw.Divider(),
+      ],
     );
   }
 
@@ -289,150 +215,41 @@ class PdfService {
     required double totalGeneratorConsumption,
     required double totalDiesel,
   }) {
-    final List<double> values = [
-      totalGeneratorConsumption,
-      totalSolarConsumption
-    ];
-    final List<PdfColor> colors = [PdfColors.orange, PdfColors.blue];
-
     return pw.Container(
       decoration: pw.BoxDecoration(
-        color: PdfColors.white,
-        borderRadius: pw.BorderRadius.circular(8),
-        boxShadow: [
-          pw.BoxShadow(
-            color: PdfColors.grey300,
-            offset: PdfPoint(0, 2),
-            blurRadius: 4,
-          ),
-        ],
+        border: pw.Border.all(color: PdfColors.grey300),
+        borderRadius: pw.BorderRadius.circular(5),
       ),
-      padding: const pw.EdgeInsets.all(20),
+      padding: const pw.EdgeInsets.all(10),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(
             'ملخص الانتاج',
             style: pw.TextStyle(
-              fontSize: 18,
-              fontWeight: pw.FontWeight.bold,
-              color: PdfColors.blue900,
-            ),
-          ),
-          pw.SizedBox(height: 20),
-          pw.Row(
-            children: [
-              pw.Expanded(
-                flex: 3,
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    _buildEnhancedSummaryRow(
-                      label: 'مجموع الانتاج',
-                      value: '${totalConsumption.toStringAsFixed(2)} KWh',
-                      icon: '⚡',
-                      color: PdfColors.green,
-                    ),
-                    _buildEnhancedSummaryRow(
-                      label: 'إنتاج المولدات',
-                      value:
-                          '${totalGeneratorConsumption.toStringAsFixed(2)} kWh',
-                      icon: '🔋',
-                      color: PdfColors.orange,
-                    ),
-                    _buildEnhancedSummaryRow(
-                      label: 'إنتاج المنظومات',
-                      value: '${totalSolarConsumption.toStringAsFixed(2)} kWh',
-                      icon: '☀️',
-                      color: PdfColors.blue,
-                    ),
-                    _buildEnhancedSummaryRow(
-                      label: 'مجموع استهلاك الديزل',
-                      value: '${totalDiesel.toStringAsFixed(2)} L',
-                      icon: '⛽',
-                      color: PdfColors.red,
-                    ),
-                  ],
-                ),
-              ),
-              pw.SizedBox(width: 20),
-              pw.Expanded(
-                flex: 2,
-                child: pw.Container(
-                  height: 150,
-                  child: pw.Stack(
-                    alignment: pw.Alignment.center,
-                    children: [
-                      pw.Container(
-                        width: 150,
-                        height: 150,
-                        child: pw.Chart(
-                          grid: pw.PieGrid(),
-                          datasets: [
-                            pw.PieDataSet(
-                              value: values[0],
-                              color: colors[0],
-                            ),
-                            pw.PieDataSet(
-                              value: values[1],
-                              color: colors[1],
-                            ),
-                          ],
-                        ),
-                      ),
-                      pw.Text(
-                        'توزيع الإنتاج',
-                        style: pw.TextStyle(
-                          fontSize: 12,
-                          color: PdfColors.grey700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildEnhancedSummaryRow({
-    required String label,
-    required String value,
-    required String icon,
-    required PdfColor color,
-  }) {
-    return pw.Container(
-      margin: const pw.EdgeInsets.symmetric(vertical: 5),
-      padding: const pw.EdgeInsets.all(8),
-      decoration: pw.BoxDecoration(
-        borderRadius: pw.BorderRadius.circular(4),
-        color: PdfColors.grey100,
-      ),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          pw.Row(
-            children: [
-              pw.Text(
-                icon,
-                style: const pw.TextStyle(fontSize: 14),
-              ),
-              pw.SizedBox(width: 8),
-              pw.Text(
-                label,
-                style: pw.TextStyle(color: PdfColors.grey800),
-              ),
-            ],
-          ),
-          pw.Text(
-            value,
-            style: pw.TextStyle(
-              color: color,
+              fontSize: 16,
               fontWeight: pw.FontWeight.bold,
             ),
+          ),
+          pw.SizedBox(height: 10),
+          _buildSummaryRow(
+              label: 'مجموع الانتاج',
+              value: '${totalConsumption.toStringAsFixed(2)} KWh',
+              color: PdfColors.green),
+          _buildSummaryRow(
+            label: 'إنتاج المولدات',
+            value: '${totalGeneratorConsumption.toStringAsFixed(2)} kWh',
+            color: PdfColors.orange,
+          ),
+          _buildSummaryRow(
+            label: 'إنتاج المنظومات',
+            value: '${totalSolarConsumption.toStringAsFixed(2)} kWh',
+            color: PdfColors.blue,
+          ),
+          _buildSummaryRow(
+            label: 'مجموع استهلاك الديزل',
+            value: '${totalDiesel.toStringAsFixed(2)} L',
+            color: PdfColors.red,
           ),
         ],
       ),
@@ -547,13 +364,13 @@ class PdfService {
         ...detailedReadings.map((reading) {
           final readingObj = reading['readingObj'] as Reading;
           return pw.Container(
-            margin: const pw.EdgeInsets.only(bottom: 15),
+            margin: pw.EdgeInsets.only(bottom: 10),
             decoration: pw.BoxDecoration(
-              color: PdfColors.grey100,
-              borderRadius: pw.BorderRadius.circular(8),
               border: pw.Border.all(color: PdfColors.grey300),
+              borderRadius: pw.BorderRadius.circular(5),
+              color: PdfColors.orange50,
             ),
-            padding: const pw.EdgeInsets.all(15),
+            padding: pw.EdgeInsets.all(10),
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
@@ -648,13 +465,13 @@ class PdfService {
         ...detailedReadings.map((reading) {
           final readingObj = reading['readingObj'] as Reading;
           return pw.Container(
-            margin: const pw.EdgeInsets.only(bottom: 15),
+            margin: pw.EdgeInsets.only(bottom: 10),
             decoration: pw.BoxDecoration(
-              color: PdfColors.grey100,
-              borderRadius: pw.BorderRadius.circular(8),
               border: pw.Border.all(color: PdfColors.grey300),
+              borderRadius: pw.BorderRadius.circular(5),
+              color: PdfColors.orange50,
             ),
-            padding: const pw.EdgeInsets.all(15),
+            padding: pw.EdgeInsets.all(10),
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
@@ -740,67 +557,6 @@ class PdfService {
         children: [
           pw.Text(label, style: pw.TextStyle(color: PdfColors.grey700)),
           pw.Text(value),
-        ],
-      ),
-    );
-  }
-
-  pw.PageTheme _buildPageTheme() {
-    return pw.PageTheme(
-      pageFormat: PdfPageFormat.a4,
-      buildBackground: (pw.Context context) {
-        return pw.FullPage(
-          ignoreMargins: true,
-          child: pw.Watermark(
-            angle: 45,
-            child: pw.Text(
-              'نظام متابعة استهلاك الكهرباء',
-              style: pw.TextStyle(
-                color: PdfColors.blue100,
-                fontSize: 32,
-                fontWeight: pw.FontWeight.bold,
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  pw.Widget _buildPageHeader(pw.Context context) {
-    if (context.pageNumber == 1) return pw.SizedBox();
-    return pw.Container(
-      decoration: pw.BoxDecoration(
-        border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300)),
-      ),
-      margin: const pw.EdgeInsets.only(bottom: 10, top: 10),
-      padding: const pw.EdgeInsets.only(bottom: 10),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          pw.Text('نظام متابعة استهلاك الكهرباء',
-              style: pw.TextStyle(color: PdfColors.grey700)),
-          pw.Text(DateFormat('yyyy-MM-dd').format(DateTime.now()),
-              style: pw.TextStyle(color: PdfColors.grey700)),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildPageFooter(pw.Context context) {
-    return pw.Container(
-      margin: const pw.EdgeInsets.only(top: 10),
-      padding: const pw.EdgeInsets.only(top: 10),
-      decoration: pw.BoxDecoration(
-        border: pw.Border(top: pw.BorderSide(color: PdfColors.grey300)),
-      ),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          pw.Text('جميع الحقوق محفوظة © ${DateTime.now().year}',
-              style: pw.TextStyle(color: PdfColors.grey700)),
-          pw.Text('صفحة ${context.pageNumber} من ${context.pagesCount}',
-              style: pw.TextStyle(color: PdfColors.grey700)),
         ],
       ),
     );
